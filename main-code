@@ -1,7 +1,10 @@
 -- <<Secondary Vars>> --
-wait(3)
+
+-- <<PLAYER>> --
 local plr = game.Players.LocalPlayer
 local char = plr.Character
+
+-- <<EXPLOIT TOGGLES>> --
 local toggleIJ = false
 local toggleACC = false
 local defaultWalkSpeed = char.Humanoid.WalkSpeed
@@ -11,22 +14,34 @@ local GTP = false
 local NFall = false
 local ptrail = false
 local bhop = false
+local nclip = false
+local UESP = false
+local allMM2ESP = false
+local MurdMM2ESP = false
+local sheriffMM2ESP = false
+local ALLESP = false
+local ToolEsp = false
 
+-- <<SERVICES>> --
+
+local rs = game:GetService("RunService")
+
+--<<Fuctions>>
 function findPlayer(str)
 	print("executed")
 	for _,v in pairs(game.Players:GetPlayers()) do
 		print("found")
 		print(v.Name)
-		local splitTable = string.split(v.Name..str)
+		local splitTable = string.split(v.Name,str)
 
-		if splitTable[2] then
+		if splitTable[2] ~= nil then
 			print("Returned")
 			return v
 		end
 	end
 end
 
--- <<GUI>> --
+-- <<Main CODE>> --
 
 local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/xHeptc/Kavo-UI-Library/main/source.lua"))()
 local Window = Library.CreateLib("GG Hub", "Synapse")
@@ -57,6 +72,24 @@ Section:NewToggle("Ligit ws", "Higher walkspeed, it looks more ligit", function(
 		char.Humanoid.WalkSpeed = defaultWalkSpeed + 3
 	else
 		char.Humanoid.WalkSpeed = defaultWalkSpeed
+	end
+end)
+
+Section:NewToggle("Noclip", "walk through walls", function(state)
+	if state then
+		nclip = true
+		game.StarterGui:SetCore("SendNotification",{
+			Title = "noclip on",
+			Text = "You can walk through walls!",
+			Duration = 6
+		})
+	else
+		nclip = false
+		game.StarterGui:SetCore("SendNotification",{
+			Title = "noclip off",
+			Text = "You can NOT walk through walls!",
+			Duration = 6
+		})
 	end
 end)
 
@@ -99,6 +132,15 @@ end)
 Section:NewToggle("bhop", "jump on land automatically", function(state)
 	if state then
 		bhop = true
+		char.Humanoid.StateChanged:Connect(function(old,new)
+			if new == Enum.HumanoidStateType.Landed and bhop == true then
+				char.HumanoidRootPart.Velocity = Vector3.new(0,50,0)
+			end
+			if new == Enum.HumanoidStateType.None and bhop == true then
+				char.HumanoidRootPart.Velocity = Vector3.new(0,25,0)
+			end
+		end)
+		char.HumanoidRootPart.Velocity = Vector3.new(0,50,0)
 		game.StarterGui:SetCore("SendNotification",{
 			Title = "bhop on",
 			Text = "You will jump when you land!",
@@ -117,7 +159,7 @@ end)
 Section:NewTextBox("Tp to a player", "tp to a player (shorten name)", function(txt)
 	local target = findPlayer(txt)
 	
-	if target.Character ~= nil then
+	if target ~= nil then
 		local s,e = pcall(function()
 			plr.Character.HumanoidRootPart.CFrame = target.Character.HumanoidRootPart.CFrame
 		end)
@@ -279,6 +321,23 @@ if game.PlaceId == 142823291 then
 					end
 				end
 			end
+		end
+	end)
+	Section:NewToggle("auto all esp", "ALWAYS have 'all' esp on and update it", function(state)
+		if state then
+			allMM2ESP = true
+			game.StarterGui:SetCore("SendNotification",{
+				Title = "ALL ESP on",
+				Text = "ALL esp will now be auto updated! NOTICE: MAY SLOW DOWN OTHER LOOPED EXPLOITS SLIGHTLY!",
+				Duration = 6
+			})
+		else
+			allMM2ESP = false
+			game.StarterGui:SetCore("SendNotification",{
+				Title = "ALL ESP off",
+				Text = "ALL esp will NOT be auto updated.",
+				Duration = 6
+			})
 		end
 	end)
 	Section:NewButton("Murd ESP", "highlight the murderer", function()
@@ -493,13 +552,34 @@ wait()
 local PlayerTab = Window:NewTab("Settings")
 wait()
 local Section = PlayerTab:NewSection("No settings yet!")
-wait()
+
+Section:NewToggle("Update ESP automatically (may lag loop)", "update esp every loop (may slow down exploits)", function(state)
+	if state then
+		UESP = true
+		game.StarterGui:SetCore("SendNotification",{
+			Title = "Update esp on",
+			Text = "Auto update esp on! WARNING: MAY CAUSE SOME EXPLOIT DELAY!!!!",
+			Duration = 6
+		})
+	else
+		GTP = false
+		game.StarterGui:SetCore("SendNotification",{
+			Title = "Update esp off",
+			Text = "Auto update esp off!",
+			Duration = 6
+		})
+	end
+end)
 
 -- <<EXPLOIT FUNCTIONS>> --
 
-char.Humanoid.StateChanged:Connect(function(old,new)
-	if new == Enum.HumanoidStateType.Landed and bhop == true then
-		char.HumanoidRootPart.Velocity = Vector3.new(0,50,0)
+rs.Stepped:Connect(function()
+	if nclip == true then
+		for _,v in pairs(char:GetChildren()) do
+			if v:IsA("BasePart") then
+				v.CanCollide = false
+			end
+		end
 	end
 end)
 
@@ -513,9 +593,6 @@ function mainLoop()
 			wait(0)
 			if toggleIJ == true then
 				char.Humanoid:ChangeState(Enum.HumanoidStateType.Swimming)
-			end
-			if bhop == true then
-				char.HumanoidRootPart.Velocity = Vector3.new(0,5,0)
 			end
 			if GESP == true then
 				if game.Workspace:WaitForChild("GunDrop",0.01) ~= nil then
@@ -584,7 +661,71 @@ function mainLoop()
 				wait(0.01)
 				nfallpart:Destroy()
 			end
-			
+			if allMM2ESP == true then
+				for _,v in pairs(game.Players:GetPlayers()) do --MURD HL
+					local pchar = game.Workspace:WaitForChild(v.Name,0.1)
+
+					if pchar then
+						for _,a in pairs(v.Backpack:GetChildren()) do
+							if a.Name == "Knife" then
+								if v.Character:WaitForChild("Highlight",0.01) then
+									v.Character:WaitForChild("Highlight",0.01)
+								end
+								local hl = Instance.new("Highlight",pchar)
+								hl.Adornee = pchar
+								hl.FillColor = Color3.new(1, 0.23, 1)
+							end
+						end
+						for _,a in pairs(pchar:GetChildren()) do
+							if a.Name == "Knife" then
+								if v.Character:WaitForChild("Highlight",0.01) then
+									v.Character:WaitForChild("Highlight",0.01)
+								end
+								local hl = Instance.new("Highlight",pchar)
+								hl.Adornee = pchar
+								hl.FillColor = Color3.new(1, 0.23, 1)
+							end
+						end
+					end
+				end
+				for _,v in pairs(game.Players:GetPlayers()) do
+					local pchar = game.Workspace:WaitForChild(v.Name,0.1)
+
+					if pchar then
+						for _,a in pairs(v.Backpack:GetChildren()) do
+							if a.Name == "Gun" then
+								if v.Character:WaitForChild("Highlight",0.01) then
+									v.Character:WaitForChild("Highlight",0.01)
+								end
+								local hl = Instance.new("Highlight",pchar)
+								hl.Adornee = pchar
+								hl.FillColor = Color3.new(0, 0.23, 1)
+							end
+						end
+						for _,a in pairs(pchar:GetChildren()) do
+							if a.Name == "Gun" then
+								if v.Character:WaitForChild("Highlight",0.01) then
+									v.Character:WaitForChild("Highlight",0.01)
+								end
+								local hl = Instance.new("Highlight",pchar)
+								hl.Adornee = pchar
+								hl.FillColor = Color3.new(0, 0.23, 1)
+							end
+						end
+						for _,v in pairs(game.Players:GetPlayers()) do --ALL hl
+							if v.Character:WaitForChild("Highlight",0.01) == nil then
+								local pchar = game.Workspace:WaitForChild(v.Name,0.1)
+
+								if pchar then
+									local hl = Instance.new("Highlight",pchar)
+									hl.Adornee = pchar
+									hl.FillColor = Color3.new(0,1,0)
+								end
+							end
+						end
+					end
+				end
+			end
 		end)
 		if e then
 			mainLoop()
