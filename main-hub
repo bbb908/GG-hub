@@ -153,7 +153,7 @@ function beginFling()
 	bv.P = math.huge
 	bv.AngularVelocity = Vector3.new(0, 9e5, 0)
 	bv.Parent = rootpart
-	for i, v in next, char do
+	for i, v in pairs(char:GetChildren()) do
 		if v:IsA("BasePart") then
 			v.CanCollide = false
 			v.Massless = true
@@ -161,7 +161,7 @@ function beginFling()
 		end
 	end
 	flingtbl.Noclipping2 = rs.Stepped:Connect(function()
-		for i, v in next, char do
+		for i, v in pairs(char:GetChildren()) do
 			if v:IsA("BasePart") then
 				v.CanCollide = false
 			end
@@ -187,6 +187,14 @@ wait()
 Section:NewSlider("JumpPower", "Change how far you jump", 250, defaultJumpPower, function(amount)
 	char.Humanoid.UseJumpPower = true
 	char.Humanoid.JumpPower = amount
+end)
+
+Section:NewToggle("Fly", "become bird", function(state)
+	if state then
+		sFLY()
+	else
+		NOFLY()
+	end
 end)
 wait()
 Section:NewToggle("Infinite Jump", "Jump in air", function(state)
@@ -315,10 +323,10 @@ Section:NewTextBox("loopfling a player", "fling a player (shorten name possible)
 	local target = findPlayer(txt)
 
 	if target ~= nil then
-		beginFling()
 		loopflinsg = true
 		while wait() do
 			local s,e = pcall(function()
+				beginFling()
 				plr.Character.HumanoidRootPart.CFrame = target.Character.HumanoidRootPart.CFrame
 			end)
 			
@@ -345,14 +353,6 @@ Section:NewButton("Unloopfling", "stop all loopflinging", function()
 			Text = "Loopfling not able to validate!",
 			Duration = 3
 		})
-	end
-end)
-
-Section:NewToggle("Fly", "become bird", function(state)
-	if state then
-		sFLY()
-	else
-		NOFLY()
 	end
 end)
 
@@ -429,7 +429,7 @@ local PlayerTab = Window:NewTab("Scripts")
 local Section = PlayerTab:NewSection("GREAT scripts")
 
 Section:NewButton("Infinite Yield", "(FE) admin commands", function()
-	loadstring(game:HttpGet('https://pastebin.com/raw/tzTXmYf2'))()
+	loadstring(game:HttpGet(('https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source'),true))()
 end)
 
 Section:NewButton("Dex Explorer", "explorer to see the game", function()
