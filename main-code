@@ -9,6 +9,9 @@ local toggleIJ = false
 local toggleACC = false
 local defaultWalkSpeed = char.Humanoid.WalkSpeed
 local defaultJumpPower = char.Humanoid.JumpPower
+local IYMouse = plr:GetMouse()
+local flingtbl = {}
+local flinging = false
 local GESP = false
 local GTP = false
 local NFall = false
@@ -21,6 +24,7 @@ local MurdMM2ESP = false
 local sheriffMM2ESP = false
 local ALLESP = false
 local ToolEsp = false
+local gspoof = false
 
 -- <<SERVICES>> --
 
@@ -39,6 +43,132 @@ function findPlayer(str)
 			return v
 		end
 	end
+end
+
+FLYING = false
+QEfly = true
+iyflyspeed = 1
+vehicleflyspeed = 1
+function sFLY(vfly)
+	repeat wait() until plr and plr.Character and char.HumanoidRootPart and plr.Character:FindFirstChildOfClass("Humanoid")
+	repeat wait() until IYMouse
+	if flyKeyDown or flyKeyUp then flyKeyDown:Disconnect() flyKeyUp:Disconnect() end
+
+	local T = char.HumanoidRootPart
+	local CONTROL = {F = 0, B = 0, L = 0, R = 0, Q = 0, E = 0}
+	local lCONTROL = {F = 0, B = 0, L = 0, R = 0, Q = 0, E = 0}
+	local SPEED = 0
+
+	local function FLY()
+		FLYING = true
+		local BG = Instance.new('BodyGyro')
+		local BV = Instance.new('BodyVelocity')
+		BG.P = 9e4
+		BG.Parent = T
+		BV.Parent = T
+		BG.maxTorque = Vector3.new(9e9, 9e9, 9e9)
+		BG.cframe = T.CFrame
+		BV.velocity = Vector3.new(0, 0, 0)
+		BV.maxForce = Vector3.new(9e9, 9e9, 9e9)
+		task.spawn(function()
+			repeat wait()
+				if not vfly and plr.Character:FindFirstChildOfClass('Humanoid') then
+					plr.Character:FindFirstChildOfClass('Humanoid').PlatformStand = true
+				end
+				if CONTROL.L + CONTROL.R ~= 0 or CONTROL.F + CONTROL.B ~= 0 or CONTROL.Q + CONTROL.E ~= 0 then
+					SPEED = 50
+				elseif not (CONTROL.L + CONTROL.R ~= 0 or CONTROL.F + CONTROL.B ~= 0 or CONTROL.Q + CONTROL.E ~= 0) and SPEED ~= 0 then
+					SPEED = 0
+				end
+				if (CONTROL.L + CONTROL.R) ~= 0 or (CONTROL.F + CONTROL.B) ~= 0 or (CONTROL.Q + CONTROL.E) ~= 0 then
+					BV.velocity = ((workspace.CurrentCamera.CoordinateFrame.lookVector * (CONTROL.F + CONTROL.B)) + ((workspace.CurrentCamera.CoordinateFrame * CFrame.new(CONTROL.L + CONTROL.R, (CONTROL.F + CONTROL.B + CONTROL.Q + CONTROL.E) * 0.2, 0).p) - workspace.CurrentCamera.CoordinateFrame.p)) * SPEED
+					lCONTROL = {F = CONTROL.F, B = CONTROL.B, L = CONTROL.L, R = CONTROL.R}
+				elseif (CONTROL.L + CONTROL.R) == 0 and (CONTROL.F + CONTROL.B) == 0 and (CONTROL.Q + CONTROL.E) == 0 and SPEED ~= 0 then
+					BV.velocity = ((workspace.CurrentCamera.CoordinateFrame.lookVector * (lCONTROL.F + lCONTROL.B)) + ((workspace.CurrentCamera.CoordinateFrame * CFrame.new(lCONTROL.L + lCONTROL.R, (lCONTROL.F + lCONTROL.B + CONTROL.Q + CONTROL.E) * 0.2, 0).p) - workspace.CurrentCamera.CoordinateFrame.p)) * SPEED
+				else
+					BV.velocity = Vector3.new(0, 0, 0)
+				end
+				BG.cframe = workspace.CurrentCamera.CoordinateFrame
+			until not FLYING
+			CONTROL = {F = 0, B = 0, L = 0, R = 0, Q = 0, E = 0}
+			lCONTROL = {F = 0, B = 0, L = 0, R = 0, Q = 0, E = 0}
+			SPEED = 0
+			BG:Destroy()
+			BV:Destroy()
+			if plr.Character:FindFirstChildOfClass('Humanoid') then
+				plr.Character:FindFirstChildOfClass('Humanoid').PlatformStand = false
+			end
+		end)
+	end
+	flyKeyDown = IYMouse.KeyDown:Connect(function(KEY)
+		if KEY:lower() == 'w' then
+			CONTROL.F = (vfly and vehicleflyspeed or iyflyspeed)
+		elseif KEY:lower() == 's' then
+			CONTROL.B = - (vfly and vehicleflyspeed or iyflyspeed)
+		elseif KEY:lower() == 'a' then
+			CONTROL.L = - (vfly and vehicleflyspeed or iyflyspeed)
+		elseif KEY:lower() == 'd' then 
+			CONTROL.R = (vfly and vehicleflyspeed or iyflyspeed)
+		elseif QEfly and KEY:lower() == 'e' then
+			CONTROL.Q = (vfly and vehicleflyspeed or iyflyspeed)*2
+		elseif QEfly and KEY:lower() == 'q' then
+			CONTROL.E = -(vfly and vehicleflyspeed or iyflyspeed)*2
+		end
+		pcall(function() workspace.CurrentCamera.CameraType = Enum.CameraType.Track end)
+	end)
+	flyKeyUp = IYMouse.KeyUp:Connect(function(KEY)
+		if KEY:lower() == 'w' then
+			CONTROL.F = 0
+		elseif KEY:lower() == 's' then
+			CONTROL.B = 0
+		elseif KEY:lower() == 'a' then
+			CONTROL.L = 0
+		elseif KEY:lower() == 'd' then
+			CONTROL.R = 0
+		elseif KEY:lower() == 'e' then
+			CONTROL.Q = 0
+		elseif KEY:lower() == 'q' then
+			CONTROL.E = 0
+		end
+	end)
+	FLY()
+end
+
+function NOFLY()
+	FLYING = false
+	if flyKeyDown or flyKeyUp then flyKeyDown:Disconnect() flyKeyUp:Disconnect() end
+	if plr.Character:FindFirstChildOfClass('Humanoid') then
+		plr.Character:FindFirstChildOfClass('Humanoid').PlatformStand = false
+	end
+	pcall(function() workspace.CurrentCamera.CameraType = Enum.CameraType.Custom end)
+end
+
+function beginFling()
+	local rootpart = char.HumanoidRootPart
+	if not rootpart then game.StarterGui:SetCore("SendNotification",{Title = "Error",Text = "Couldn't find your rootpart!",Duration = 6}) end
+	flingtbl.OldVelocity = rootpart.Velocity
+	local bv = Instance.new("BodyAngularVelocity")
+	flingtbl.bv = bv
+	bv.MaxTorque = Vector3.new(1, 1, 1) * math.huge
+	bv.P = math.huge
+	bv.AngularVelocity = Vector3.new(0, 9e5, 0)
+	bv.Parent = rootpart
+	for i, v in next, char do
+		if v:IsA("BasePart") then
+			v.CanCollide = false
+			v.Massless = true
+			v.Velocity = Vector3.new(0, 0, 0)
+		end
+	end
+	flingtbl.Noclipping2 = rs.Stepped:Connect(function()
+		for i, v in next, char do
+			if v:IsA("BasePart") then
+				v.CanCollide = false
+			end
+		end
+	end)
+	flinging = true
+	sFLY()
 end
 
 -- <<Main CODE>> --
@@ -134,10 +264,12 @@ Section:NewToggle("bhop", "jump on land automatically", function(state)
 		bhop = true
 		char.Humanoid.StateChanged:Connect(function(old,new)
 			if new == Enum.HumanoidStateType.Landed and bhop == true then
-				char.HumanoidRootPart.Velocity = Vector3.new(0,50,0)
+				wait(0.01)
+				char.HumanoidRootPart.Velocity = Vector3.new(10,20,10)
 			end
-			if new == Enum.HumanoidStateType.None and bhop == true then
-				char.HumanoidRootPart.Velocity = Vector3.new(0,25,0)
+			if new ~= Enum.HumanoidStateType.Freefall and bhop == true then
+				wait(0.01)
+				char.HumanoidRootPart.Velocity = Vector3.new(5,50,5)
 			end
 		end)
 		char.HumanoidRootPart.Velocity = Vector3.new(0,50,0)
@@ -179,6 +311,50 @@ Section:NewTextBox("Tp to a player", "tp to a player (shorten name)", function(t
 	end
 end)
 
+Section:NewTextBox("loopfling a player", "fling a player (shorten name possible)", function(txt)
+	local target = findPlayer(txt)
+
+	if target ~= nil then
+		beginFling()
+		loopflinsg = true
+		while wait() do
+			local s,e = pcall(function()
+				plr.Character.HumanoidRootPart.CFrame = target.Character.HumanoidRootPart.CFrame
+			end)
+			
+			if loopflinsg == false then
+				break
+			end
+		end
+		else
+		game.StarterGui:SetCore("SendNotification",{
+			Title = "error",
+			Text = "Player not found!",
+			Duration = 1
+		})
+	end
+end)
+
+Section:NewButton("Unloopfling", "stop all loopflinging", function()
+	if loopflinsg == true then
+		loopflinsg = false
+		char.Humanoid:ChangeState(Enum.HumanoidStateType.Dead)
+	else
+		game.StarterGui:SetCore("SendNotification",{
+			Title = "error",
+			Text = "Loopfling not able to validate!",
+			Duration = 3
+		})
+	end
+end)
+
+Section:NewToggle("Fly", "become bird", function(state)
+	if state then
+		sFLY()
+	else
+		NOFLY()
+	end
+end)
 
 wait()
 --Admin commands tab
@@ -253,13 +429,25 @@ local PlayerTab = Window:NewTab("Scripts")
 local Section = PlayerTab:NewSection("GREAT scripts")
 
 Section:NewButton("Infinite Yield", "(FE) admin commands", function()
-	loadstring(game:HttpGet('https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source'))()
+	loadstring(game:HttpGet('https://pastebin.com/raw/tzTXmYf2'))()
 end)
 
 Section:NewButton("Dex Explorer", "explorer to see the game", function()
 	loadstring(game:HttpGet('https://gist.githubusercontent.com/DinosaurXxX/b757fe011e7e600c0873f967fe427dc2/raw/ee5324771f017073fc30e640323ac2a9b3bfc550/dark%2520dex%2520v4'))()
 end)
 wait()
+local PlayerTab = Window:NewTab("Fun")
+wait()
+local Section = PlayerTab:NewSection("local player")
+
+Section:NewToggle("Self fling", "RIP Self gone to void", function(state)
+	if state then
+		gspoof = true
+	else
+		gspoof = false
+	end
+end)
+
 --search for supported games
 if game.PlaceId == 142823291 then
 	game.StarterGui:SetCore("SendNotification",{
@@ -385,6 +573,17 @@ if game.PlaceId == 142823291 then
 			end
 		end
 	end)
+	Section:NewButton("Coin ESP", "highlight the coins", function()
+		for _,v in pairs(game.Workspace:GetDescendants()) do
+			if v.Name == "CoinContainer" then
+				for _,a in pairs(v:GetChildren()) do
+					local hl = Instance.new("Highlight",v)
+					hl.Adornee = v
+					hl.FillColor = Color3.new(0.737255, 0.847059, 0.0196078)
+				end
+			end
+		end
+	end)
 	wait()
 	Section:NewToggle("Gun esp + Alert", "an alert and a marker of where it is", function(state)
 		if state then
@@ -448,6 +647,26 @@ if game.PlaceId == 142823291 then
 			})
 		end
 	end)
+	Section:NewLabel("Teleports")
+	Section:NewButton("Tp to map", "tp to map", function()
+		local tp = false
+		for _,v in pairs(game.Workspace:GetDescendants()) do
+			if v.Name == "CoinContainer" or v.Name == "CoinAreas" then
+				print("found")
+				if tp == false then
+					local tp = true
+					for _,v in pairs(v:GetChildren()) do
+						if v:FindFirstChildOfClass("BasePart") ~= nil then
+							char.HumanoidRootPart.CFrame = v:FindFirstChildOfClass("BasePart").CFrame
+						end
+					end
+					
+				else
+					print("Already tp'd!")
+				end
+			end
+		end
+	end)
 end
 if game.PlaceId == 189707 then
 	game.StarterGui:SetCore("SendNotification",{
@@ -499,7 +718,7 @@ if game.PlaceId == 3108078982 then
 	local Section = PlayerTab:NewSection("Admin")
 
 	Section:NewButton("go to admin pads", "teleport to admin pads", function()
-		plr.Character.HumanoidRootPart.CFrame = Vector3.new(18,7,129)
+		plr.Character.HumanoidRootPart.CFrame = CFrame.new(18,7,129)
 	end)
 end
 plr.PlayerGui.ChildAdded:Connect(function(obj)
@@ -581,11 +800,58 @@ rs.Stepped:Connect(function()
 			end
 		end
 	end
+	if gspoof == true then
+		if char:WaitForChild("Humanoid",1) then
+			char:WaitForChild("Humanoid",1):ChangeState(Enum.HumanoidStateType.Landed)
+			task.wait()
+			char:WaitForChild("Humanoid",1):ChangeState(Enum.HumanoidStateType.Seated)
+			wait()
+			char:WaitForChild("Humanoid",1):ChangeState(Enum.HumanoidStateType.None)
+			task.wait()
+			char:WaitForChild("Humanoid",1):ChangeState(Enum.HumanoidStateType.Climbing)
+			
+			if char:WaitForChild("Torso",0.01) then
+				local ts = game:GetService("TweenService")
+				local tinf = TweenInfo.new(
+					0.5,
+					Enum.EasingStyle.Linear,
+					Enum.EasingDirection.Out,
+					0,
+					true
+				)
+				local goal = {
+					Position = Vector3.new(char.Torso.Position.X,char.Torso.Position.Y+0.02,char.Torso.Position.Z +0.4)
+				}
+				local tween = ts:Create(char.Torso,tinf,goal)
+				tween:Play()
+			else
+				local ts = game:GetService("TweenService")
+				local tinf = TweenInfo.new(
+					0.5,
+					Enum.EasingStyle.Linear,
+					Enum.EasingDirection.Out,
+					0,
+					true
+				)
+				local goal = {
+					Position = Vector3.new(char.LowerTorso.Position.X,char.LowerTorso.Position.Y+0.02,char.LowerTorso.Position.Z +0.4)
+				}
+				local tween = ts:Create(char.LowerTorso,tinf,goal)
+				tween:Play()
+			end
+			char.Torso.Velocity = Vector3.new(50000,5000000,500000000)
+		end
+	end
 end)
 
 -- <<EXPLOIT LOOP>> --
 
 function mainLoop()
+	plr = game.Players.LocalPlayer
+	char = plr.Character
+	char.Humanoid.Died:Connect(function()
+		NOFLY()
+	end)
 	while true do
 		local s,e = pcall(function()
 			plr = game.Players.LocalPlayer
@@ -610,7 +876,7 @@ function mainLoop()
 						hl.FillColor = Color3.new(0.333333, 0.333333, 0.498039)
 
 						local hl = Instance.new("Highlight",hlBox)
-						hl.Adornee = game.Workspace:WaitForChild("GunDrop",0.01)
+						hl.Adornee = hlBox
 						hl.FillColor = Color3.new(0.333333, 0.333333, 0.498039)
 
 						game.StarterGui:SetCore("SendNotification",{
@@ -728,6 +994,7 @@ function mainLoop()
 			end
 		end)
 		if e then
+			print(e)
 			mainLoop()
 		end
 	end
