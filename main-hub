@@ -380,6 +380,14 @@ Section:NewToggle("Anti-Local commands", "Disable commands like ;crash", functio
 		})
 	end
 end)
+
+Section:NewButton("[PERM] anti mute", "stops all mutes", function()
+	repeat wait(0)
+		game.StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.Chat,true)
+	until 0==1
+end)
+
+
 wait()
 --Render TAB
 
